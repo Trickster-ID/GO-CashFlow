@@ -24,7 +24,8 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/", cfctrl.POST).Methods("POST")
+	r.HandleFunc("/", cfctrl.Post).Methods("POST")
+	r.HandleFunc("/", cfctrl.GetAll).Methods("GET")
 	fmt.Println("server is listening...")
 	http.ListenAndServe(":8888", r)
 }

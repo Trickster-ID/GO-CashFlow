@@ -11,7 +11,8 @@ import (
 )
 
 type CashFlowCtrl interface {
-	POST(response http.ResponseWriter, request *http.Request)
+	Post(response http.ResponseWriter, request *http.Request)
+	GetAll(response http.ResponseWriter, request *http.Request)
 }
 
 type cfctrl struct {
@@ -26,15 +27,25 @@ func NewCashFlowCtrl(Cfsvc service.CashFlowSvc) CashFlowCtrl {
 
 var cashInOut entity.Cashinout
 
-func (c *cfctrl) POST(response http.ResponseWriter, request *http.Request) {
+func (c *cfctrl) Post(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
 	json.NewDecoder(request.Body).Decode(&cashInOut)
 	fmt.Print("request body: ")
 	fmt.Println(cashInOut)
-	result, err := c.cfsvc.Save(cashInOut)
+	res, err := c.cfsvc.Save(cashInOut)
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "` + err.Error() + `"}`))
 	}
-	json.NewEncoder(response).Encode(libpik.BSuccessResponse(result))
+	json.NewEncoder(response).Encode(libpik.BSuccessResponse(res))
+}
+
+func (c *cfctrl) GetAll(response http.ResponseWriter, request *http.Request) {
+	response.Header().Add("content-type", "application/json")
+	res, err := c.cfsvc.GetAll()
+	if err != nil {
+		response.WriteHeader(http.StatusInternalServerError)
+		response.Write([]byte(`{"message": "` + err.Error() + `"}`))
+	}
+	json.NewEncoder(response).Encode(libpik.BSuccessResponse(res))
 }
