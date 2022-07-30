@@ -26,6 +26,9 @@ func main() {
 
 	r.HandleFunc("/", cfctrl.Post).Methods("POST")
 	r.HandleFunc("/", cfctrl.GetAll).Methods("GET")
+	r.HandleFunc("/{id}", cfctrl.Get).Methods("GET")
+	r.HandleFunc("/{id}", cfctrl.Delete).Methods("DELETE")
+	r.HandleFunc("/{id}", cfctrl.Put).Methods("PUT")
 	fmt.Println("server is listening...")
 	http.ListenAndServe(":8888", r)
 }

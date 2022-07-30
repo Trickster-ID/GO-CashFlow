@@ -6,12 +6,17 @@ import (
 
 	"github.com/Trickster-ID/GO-CashFlow/model/entity"
 	"github.com/Trickster-ID/GO-CashFlow/repository"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/Trickster-ID/go-libpik"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type CashFlowSvc interface {
-	Save(cio entity.Cashinout) (*mongo.InsertOneResult, error)
+	Save(cd entity.Cashinout) (any, error)
 	GetAll() ([]entity.Cashinout, error)
+	Get(id string) (entity.Cashinout, error)
+	Update(id string, cd entity.Cashinout) (any, error)
+	Delete(id string) (any, error)
 }
 
 type cfsvc struct {
@@ -24,12 +29,19 @@ func NewCashFlowSvc(Cfrepo repository.CashFlowRepo) CashFlowSvc {
 	}
 }
 
-func (s *cfsvc) Save(cio entity.Cashinout) (*mongo.InsertOneResult, error) {
-	cio.CreatedBy = "admin"
-	cio.CreatedDate = time.Now()
-	cio.UpdatedBy = "admin"
-	cio.UpdatedDate = time.Now()
-	return s.cfrepo.Save(cio)
+var ce entity.Cashinout
+
+func (s *cfsvc) Save(cd entity.Cashinout) (any, error) {
+	cd.CreatedBy = "admin"
+	cd.CreatedDate = time.Now()
+	cd.UpdatedBy = "admin"
+	cd.UpdatedDate = time.Now()
+	res, err := s.cfrepo.Save(cd)
+	if err != nil {
+		return nil, err
+	}
+	cd.ID = res.InsertedID.(primitive.ObjectID)
+	return cd, err
 }
 
 func (s *cfsvc) GetAll() ([]entity.Cashinout, error) {
@@ -40,12 +52,66 @@ func (s *cfsvc) GetAll() ([]entity.Cashinout, error) {
 	}
 	defer cursor.Close(context.Background())
 	for cursor.Next(context.TODO()) {
-		var cio entity.Cashinout
-		cursor.Decode(&cio)
-		cios = append(cios, cio)
+		cursor.Decode(&ce)
+		cios = append(cios, ce)
 	}
 	if err := cursor.Err(); err != nil {
 		return []entity.Cashinout{}, err
 	}
 	return cios, err
+}
+
+func (s *cfsvc) Get(id string) (entity.Cashinout, error) {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return ce, err
+	}
+	res := s.cfrepo.Select(oid)
+	errd := res.Decode(&ce)
+	if errd != nil {
+		return ce, errd
+	}
+	return ce, nil
+}
+
+func (s *cfsvc) Update(id string, cd entity.Cashinout) (any, error) {
+	oid, errp := primitive.ObjectIDFromHex(id)
+	if errp != nil {
+		return nil, errp
+	}
+	errd := s.cfrepo.Select(oid).Decode(&ce)
+	if errd != nil {
+		return nil, errd
+	}
+	update := bson.D{
+		{Key: "$set", Value: bson.D{{Key: "type", Value: libpik.Ifelse(cd.Type, ce.Type).(string)}}},
+		{Key: "$set", Value: bson.D{{Key: "date", Value: libpik.Ifelse(cd.Date, ce.Date).(time.Time)}}},
+		{Key: "$set", Value: bson.D{{Key: "category", Value: libpik.Ifelse(cd.Category, ce.Category).(string)}}},
+		{Key: "$set", Value: bson.D{{Key: "total", Value: libpik.Ifelse(cd.Total, ce.Total).(int)}}},
+		{Key: "$set", Value: bson.D{{Key: "description", Value: libpik.Ifelse(cd.Description, ce.Description).(string)}}},
+		{Key: "$set", Value: bson.D{{Key: "updatedby", Value: "admin update"}}},
+		{Key: "$set", Value: bson.D{{Key: "updateddate", Value: time.Now()}}},
+	}
+	ce.Type = libpik.Ifelse(cd.Type, ce.Type).(string)
+	ce.Date = libpik.Ifelse(cd.Date, ce.Date).(time.Time)
+	ce.Category = libpik.Ifelse(cd.Category, ce.Category).(string)
+	ce.Total = libpik.Ifelse(cd.Total, ce.Total).(int)
+	ce.Description = libpik.Ifelse(cd.Description, ce.Description).(string)
+	ce.UpdatedBy = "admin update"
+	ce.UpdatedDate = time.Now()
+	_, err := s.cfrepo.Update(oid, update)
+	return ce, err
+}
+
+func (s *cfsvc) Delete(id string) (any, error) {
+	oid, errp := primitive.ObjectIDFromHex(id)
+	if errp != nil {
+		return nil, errp
+	}
+	errd := s.cfrepo.Select(oid).Decode(&ce)
+	if errd != nil {
+		return nil, errd
+	}
+	err := s.cfrepo.Delete(oid)
+	return ce, err
 }

@@ -52,15 +52,4 @@ func CloseClientDB(db *mongo.Client) {
 	if err != nil {
 		panic(err)
 	}
-
-	// TODO optional you can log your closed MongoDB client
-	//fmt.Println("Connection to MongoDB closed.")
 }
-
-// func (repository *accountRepository) getClient() *mongo.Client {
-//     if repository.client != nil {
-//         return repository.client
-//     }
-//     repository.client = application.ResolveClientDB()
-//     return repository.client
-// }
