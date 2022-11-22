@@ -83,15 +83,15 @@ func (s *cfsvc) Update(id string, cd entity.Cashinout) (any, error) {
 	if errd != nil {
 		return nil, errd
 	}
-	update := bson.D{
-		{Key: "$set", Value: bson.D{{Key: "type", Value: libpik.Ifelse(cd.Type, ce.Type).(string)}}},
-		{Key: "$set", Value: bson.D{{Key: "date", Value: libpik.Ifelse(cd.Date, ce.Date).(time.Time)}}},
-		{Key: "$set", Value: bson.D{{Key: "category", Value: libpik.Ifelse(cd.Category, ce.Category).(string)}}},
-		{Key: "$set", Value: bson.D{{Key: "total", Value: libpik.Ifelse(cd.Total, ce.Total).(int)}}},
-		{Key: "$set", Value: bson.D{{Key: "description", Value: libpik.Ifelse(cd.Description, ce.Description).(string)}}},
-		{Key: "$set", Value: bson.D{{Key: "updatedby", Value: "admin update"}}},
-		{Key: "$set", Value: bson.D{{Key: "updateddate", Value: time.Now()}}},
-	}
+	update := bson.D{{Key: "$set", Value: bson.D{
+		{Key: "Type", Value: libpik.Ifelse(cd.Type, ce.Type)},
+		{Key: "lastname", Value: libpik.Ifelse(cd.Date, ce.Date)},
+		{Key: "Category", Value: libpik.Ifelse(cd.Category, ce.Category)},
+		{Key: "Total", Value: libpik.Ifelse(cd.Total, ce.Total)},
+		{Key: "Description", Value: libpik.Ifelse(cd.Description, ce.Description)},
+		{Key: "UpdatedBy", Value: "admin update"},
+		{Key: "UpdatedDate", Value: time.Now()},
+	}}}
 	ce.Type = libpik.Ifelse(cd.Type, ce.Type).(string)
 	ce.Date = libpik.Ifelse(cd.Date, ce.Date).(time.Time)
 	ce.Category = libpik.Ifelse(cd.Category, ce.Category).(string)

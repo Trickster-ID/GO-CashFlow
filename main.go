@@ -13,10 +13,10 @@ import (
 )
 
 var (
-	db     *mongo.Client           = config.ResolveClientDB()
-	cfrepo repository.CashFlowRepo = repository.NewCashFlowRepo(db)
-	cfsvc  service.CashFlowSvc     = service.NewCashFlowSvc(cfrepo)
-	cfctrl controller.CashFlowCtrl = controller.NewCashFlowCtrl(cfsvc)
+	db                 *mongo.Client           = config.ResolveClientDB()
+	cashFlowRepository repository.CashFlowRepo = repository.NewCashFlowRepo(db)
+	cashFlowService    service.CashFlowSvc     = service.NewCashFlowSvc(cashFlowRepository)
+	cashFlowController controller.CashFlowCtrl = controller.NewCashFlowCtrl(cashFlowService)
 )
 
 func main() {
@@ -24,11 +24,11 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/", cfctrl.Post).Methods("POST")
-	r.HandleFunc("/", cfctrl.GetAll).Methods("GET")
-	r.HandleFunc("/{id}", cfctrl.Get).Methods("GET")
-	r.HandleFunc("/{id}", cfctrl.Delete).Methods("DELETE")
-	r.HandleFunc("/{id}", cfctrl.Put).Methods("PUT")
+	r.HandleFunc("/", cashFlowController.Post).Methods("POST")
+	r.HandleFunc("/", cashFlowController.GetAll).Methods("GET")
+	r.HandleFunc("/{id}", cashFlowController.Get).Methods("GET")
+	r.HandleFunc("/{id}", cashFlowController.Delete).Methods("DELETE")
+	r.HandleFunc("/{id}", cashFlowController.Put).Methods("PUT")
 	fmt.Println("server is listening...")
 	http.ListenAndServe(":8888", r)
 }
